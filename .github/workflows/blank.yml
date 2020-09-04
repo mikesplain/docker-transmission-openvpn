@@ -1,0 +1,35 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  buildx:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Buildx setup
+        uses: crazy-max/ghaction-docker-buildx@v1
+      - name: Dockerhub login
+        run: echo ${{ secrets.CR_PAT }} | docker login ghcr.io -u mike.splain --password-stdin 2>&1
+      - name: Run Buildx
+        run: |
+          IMAGE_ID=ghcr.io/${{ github.repository }}
+          echo "Un-commenting cross-build instructions in Dockerfile.armhf"
+          sed -i 's/^#\(.*cross-build.*\)/\1/' Dockerfile.armhf
+
+          docker buildx build \
+            --progress plain \
+            --platform=linux/arm64,linux/arm/v7,linux/arm/v6 \
+            -t $IMAGE_ID:${GITHUB_REF##*/} \
+            --push \
+            -f Dockerfile.armhf \
+            .
