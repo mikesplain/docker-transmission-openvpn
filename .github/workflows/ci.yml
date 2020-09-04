@@ -43,7 +43,8 @@ jobs:
 
       - name: Push image
         run: |
-          docker build . --file Dockerfile --tag $IMAGE_NAME
+          IMAGE_NAME=docker-transmission-openvpn
+          docker build . --tag $IMAGE_NAME
           
           IMAGE_ID=ghcr.io/${{ github.repository }}
           
